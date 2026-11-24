@@ -1,12 +1,12 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
 chcp 65001 >nul
-powershell.exe -NoProfile -Command "$r='aladiiplyton-alt/CarCar'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $b=(Invoke-WebRequest -UseBasicParsing ('https://github.com/'+$r+'/releases/download/v1.0.0/bootstrap.ps1?carcar='+[guid]::NewGuid())).Content; if($b -is [string]){$b=[Text.Encoding]::UTF8.GetBytes($b)}; $h=[BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash($b)).Replace('-',''); if($h -ne 'c0b16ded3904adc4b1386578ca94d31979efe875274f40b6a9c6400c527b1527'){throw 'Bootstrap SHA256 mismatch'}; & ([scriptblock]::Create([Text.Encoding]::UTF8.GetString($b))) -Repository $r"
+powershell.exe -NoProfile -Command "$ErrorActionPreference='Stop'; $r='aladiiplyton-alt/CarCar'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; for($i=0;$i -lt 3;$i++){try{$b=(Invoke-WebRequest -UseBasicParsing -TimeoutSec 40 ('https://github.com/'+$r+'/releases/download/v1.0.0/bootstrap-v2.ps1?carcar='+[guid]::NewGuid())).Content; if($b -is [string]){$b=[Text.Encoding]::UTF8.GetBytes($b)}; $h=[BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash($b)).Replace('-',''); if($h -ne '1cadfedd0cdfde937e3ce108d326f7cd23d1d358beea1d57d7063078de916dd8'){throw 'Bootstrap SHA256 mismatch'}; break}catch{if($i -eq 2){throw}; Write-Host 'CarCar: повторная загрузка стартового сценария...'; Start-Sleep -Seconds 2}}; & ([scriptblock]::Create([Text.Encoding]::UTF8.GetString($b))) -Repository $r"
 set "CARCAR_RESULT=%ERRORLEVEL%"
 if not "%CARCAR_RESULT%"=="0" echo CarCar: запуск не выполнен. Проверьте сообщение выше.
 rem Delete only the temporary copy created by the documented CMD command.
 rem A saved or repository copy of start.cmd is retained.
 for %%I in ("%TEMP%\.") do set "CARCAR_TEMP=%%~fI\"
 if /i not "%~dp0"=="%CARCAR_TEMP%" exit /b %CARCAR_RESULT%
-if /i not "%~nx0"=="carcar-start.cmd" exit /b %CARCAR_RESULT%
+if /i not "%~nx0"=="carcar-start.cmd" if /i not "%~nx0"=="cc.cmd" exit /b %CARCAR_RESULT%
 endlocal & del /q "%~f0" & exit /b %CARCAR_RESULT%
