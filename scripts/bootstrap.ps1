@@ -22,7 +22,8 @@ try {
         $target = Join-Path $folder $name
         Invoke-WebRequest -UseBasicParsing -Uri "$base/$name" -OutFile $target
         $line = Get-Content -LiteralPath (Join-Path $folder 'SHA256SUMS.txt') | Where-Object { ($_ -split '\s+')[-1] -eq $name } | Select-Object -First 1
-        if (!$line -or (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash -ne ($line -split '\s+')[0]) { throw "SHA256 не совпал: $name" }
+        $actualHash = [BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash([IO.File]::ReadAllBytes($target))).Replace('-','')
+        if (!$line -or $actualHash -ne ($line -split '\s+')[0]) { throw "SHA256 не совпал: $name" }
     }
     Set-Content -LiteralPath (Join-Path $folder 'repository.txt') -Value $Repository -Encoding ascii
     & (Join-Path $folder 'carcar-launcher.exe')
