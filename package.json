@@ -11,6 +11,7 @@
     "test:ui": "playwright test",
     "test:bootstrap": "node tests/bootstrap-server.mjs",
     "test:cmd": "node tests/cmd-format.mjs",
+    "test:profile": "node tests/profile-crypto.mjs",
     "release": "tauri build --no-bundle"
   },
   "dependencies": {

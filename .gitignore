@@ -11,3 +11,6 @@ release/*.zip
 release/
 test-results/
 .env
+*password*.local.*
+*.carcar
+scripts/bootstrap-profile.generated.ps1

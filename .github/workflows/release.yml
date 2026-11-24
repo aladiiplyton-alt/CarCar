@@ -27,6 +27,8 @@ jobs:
             release/start.cmd
             release/bootstrap.ps1
             release/bootstrap-v2.ps1
+            release/bootstrap-profile-*.ps1
+            release/profile-*.carcar
             release/SHA256SUMS.txt
             release/repository.txt
             release/carcar.example.env
