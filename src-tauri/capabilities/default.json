@@ -1,0 +1,6 @@
+{
+  "identifier": "main-window",
+  "description": "Only local CarCar IPC; no filesystem, HTTP or shell access from the UI.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}
