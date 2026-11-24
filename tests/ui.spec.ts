@@ -50,9 +50,7 @@ test.beforeEach(async ({ page }) => {
   });
   await page.goto("/");
 });
-test("sends, streams, formats Markdown, copies, clears and forgets on reload", async ({
-  page,
-}) => {
+test("sends, streams, formats Markdown, copies, clears and forgets on reload", async ({page}, testInfo) => {
   await page.evaluate(() => {
     (window as any).response =
       '## Готово\n\n```python\ndef greet(name):\n    return f"Привет, {name}"\n```\n\n| A | B |\n|---|---|\n| 1 | 2 |';
@@ -82,7 +80,7 @@ test("sends, streams, formats Markdown, copies, clears and forgets on reload", a
   await expect
     .poll(() => page.evaluate(() => (window as any).copied))
     .toContain("## Готово");
-  await page.screenshot({ path: "../../outputs/CarCar-chat.png" });
+  await page.screenshot({ path: testInfo.outputPath("chat.png") });
   await page.getByRole("button", { name: "Очистить диалог" }).click();
   await expect(
     page.getByRole("heading", { name: "Давайте разберёмся." }),

@@ -1,7 +1,10 @@
 param([Parameter(Mandatory=$true)][ValidatePattern('^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$')][string]$Repository)
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-$base = "https://github.com/$Repository/releases/latest/download"
+$release = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases/latest" -Headers @{'User-Agent'='CarCar-Bootstrap/1.0';'Cache-Control'='no-cache'}
+$tag = [Uri]::EscapeDataString([string]$release.tag_name)
+if (!$tag) { throw 'GitHub не указал номер релиза.' }
+$base = "https://github.com/$Repository/releases/download/$tag"
 $root = Join-Path ([IO.Path]::GetTempPath()) 'CarCar-Bootstrap'
 New-Item -ItemType Directory -Force -Path $root | Out-Null
 Get-ChildItem -LiteralPath $root -Directory | Where-Object { $_.Name -match '^[a-fA-F0-9-]{36}$' -and !($_.Attributes -band [IO.FileAttributes]::ReparsePoint) } | ForEach-Object {
@@ -17,10 +20,10 @@ $folder = Join-Path $root ([guid]::NewGuid().ToString())
 New-Item -ItemType Directory -Path $folder | Out-Null
 Set-Content -LiteralPath (Join-Path $folder 'owner.pid') -Value $PID -Encoding ascii
 try {
-    Invoke-WebRequest -UseBasicParsing -Uri "$base/SHA256SUMS.txt" -OutFile (Join-Path $folder 'SHA256SUMS.txt')
+    Invoke-WebRequest -UseBasicParsing -Uri ("$base/SHA256SUMS.txt?carcar="+[guid]::NewGuid()) -OutFile (Join-Path $folder 'SHA256SUMS.txt')
     foreach ($name in @('carcar-launcher.exe','CarCar.exe')) {
         $target = Join-Path $folder $name
-        Invoke-WebRequest -UseBasicParsing -Uri "$base/$name" -OutFile $target
+        Invoke-WebRequest -UseBasicParsing -Uri ("$base/${name}?carcar="+[guid]::NewGuid()) -OutFile $target
         $line = Get-Content -LiteralPath (Join-Path $folder 'SHA256SUMS.txt') | Where-Object { ($_ -split '\s+')[-1] -eq $name } | Select-Object -First 1
         $actualHash = [BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash([IO.File]::ReadAllBytes($target))).Replace('-','')
         if (!$line -or $actualHash -ne ($line -split '\s+')[0]) { throw "SHA256 не совпал: $name" }

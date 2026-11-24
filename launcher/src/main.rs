@@ -110,10 +110,13 @@ fn ensure_webview() -> Result<(), String> {
     Err("Установите WebView2 Runtime с сайта Microsoft и запустите carcar ещё раз.".into())
 }
 fn download(client: &Client, url: &str, dest: &Path, max: u64) -> Result<(), String> {
-    let parsed = reqwest::Url::parse(url).map_err(|_| "Неверный URL загрузки.")?;
+    let mut parsed = reqwest::Url::parse(url).map_err(|_| "Неверный URL загрузки.")?;
     if parsed.scheme() != "https" {
         return Err("Загрузка разрешена только через HTTPS.".into());
     }
+    parsed
+        .query_pairs_mut()
+        .append_pair("carcar", &uuid::Uuid::new_v4().to_string());
     let mut response = client
         .get(parsed)
         .send()
@@ -214,7 +217,28 @@ fn run() -> Result<(), String> {
                 .timeout(Duration::from_secs(180))
                 .build()
                 .map_err(|_| "Ошибка HTTPS-клиента.")?;
-            let base = format!("https://github.com/{repo}/releases/latest/download");
+            let latest: serde_json::Value = client
+                .get(format!(
+                    "https://api.github.com/repos/{repo}/releases/latest"
+                ))
+                .header("Cache-Control", "no-cache")
+                .send()
+                .map_err(|_| "Не удалось получить сведения о релизе GitHub.")?
+                .error_for_status()
+                .map_err(|_| "GitHub не вернул релиз. Проверьте репозиторий или повторите позже.")?
+                .json()
+                .map_err(|_| "GitHub вернул неверный формат релиза.")?;
+            let tag = latest["tag_name"]
+                .as_str()
+                .ok_or("GitHub не указал номер релиза.")?;
+            if tag.is_empty()
+                || !tag
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b"-_.".contains(&b))
+            {
+                return Err("Неподдерживаемый номер релиза GitHub.".into());
+            }
+            let base = format!("https://github.com/{repo}/releases/download/{tag}");
             println!("Скачивание CarCar из GitHub Releases…");
             download(
                 &client,
