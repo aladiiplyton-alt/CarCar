@@ -1,5 +1,6 @@
 * text=auto
-*.cmd text eol=lf
+*.cmd -text
 *.ps1 text eol=lf
-docs/c text eol=lf
+docs/c -text
+docs/c2 -text
 *.ico binary

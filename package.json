@@ -10,6 +10,7 @@
     "test": "playwright test",
     "test:ui": "playwright test",
     "test:bootstrap": "node tests/bootstrap-server.mjs",
+    "test:cmd": "node tests/cmd-format.mjs",
     "release": "tauri build --no-bundle"
   },
   "dependencies": {
