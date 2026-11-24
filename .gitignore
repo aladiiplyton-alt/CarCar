@@ -12,5 +12,6 @@ release/
 test-results/
 .env
 *password*.local.*
+CarCar-Profile-Password.txt
 *.carcar
 scripts/bootstrap-profile.generated.ps1
