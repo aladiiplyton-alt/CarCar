@@ -5,7 +5,8 @@ $manifest=Get-Content -LiteralPath (Join-Path $project 'profile.public.json') -R
 if($manifest.asset -notmatch '^profile-[a-f0-9]{16}\.carcar$' -or $manifest.sha256 -notmatch '^[a-f0-9]{64}$'){throw 'Invalid public profile manifest'}
 $template=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'bootstrap-profile.template.ps1'))
 $crypto=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'profile-crypto.ps1'))
-$generated=$template.Replace('# PROFILE_CRYPTO_FUNCTIONS',$crypto).Replace('__PROFILE_ASSET__',$manifest.asset).Replace('__PROFILE_HASH__',$manifest.sha256)
+$install=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'command-install.ps1'))
+$generated=$template.Replace('# PROFILE_CRYPTO_FUNCTIONS',$crypto).Replace('# COMMAND_INSTALL_FUNCTIONS',$install).Replace('__PROFILE_ASSET__',$manifest.asset).Replace('__PROFILE_HASH__',$manifest.sha256)
 $generated=($generated -replace "`r?`n","`n").TrimEnd()+"`n"
 $bootstrap=Join-Path $PSScriptRoot 'bootstrap-profile.generated.ps1'
 [IO.File]::WriteAllText($bootstrap,$generated,[Text.UTF8Encoding]::new($false))
@@ -18,4 +19,4 @@ if(!$text.Contains($expected)){throw 'The CMD starter does not pin the generated
 if ($text -match '[^\x00-\x7f]') { throw 'The CMD starter must contain ASCII only; localized messages belong in the PowerShell bootstrap.' }
 $text=($text -replace "`r?`n","`r`n").TrimEnd()+"`r`n"
 [IO.File]::WriteAllText($starter,$text,[Text.ASCIIEncoding]::new())
-foreach ($name in @('c','c2','c3')) { [IO.File]::WriteAllText((Join-Path $project ('docs\'+$name)),$text,[Text.ASCIIEncoding]::new()) }
+foreach ($name in @('c','c2','c3','c4')) { [IO.File]::WriteAllText((Join-Path $project ('docs\'+$name)),$text,[Text.ASCIIEncoding]::new()) }

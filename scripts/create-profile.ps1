@@ -1,14 +1,22 @@
-param([Parameter(Mandatory=$true)][string]$ConfigPath,[Parameter(Mandatory=$true)][string]$OutputDirectory)
+param([Parameter(Mandatory=$true)][string]$ConfigPath,[Parameter(Mandatory=$true)][string]$OutputDirectory,[Security.SecureString]$ProfilePassword)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'profile-crypto.ps1')
 $values=@{}
 foreach($line in [IO.File]::ReadAllLines([IO.Path]::GetFullPath($ConfigPath))){$parts=$line.TrimStart([char]0xfeff).Split(@('='),2);if($parts.Length -eq 2){$values[$parts[0].Trim()]=$parts[1].Trim()}}
 foreach($name in @('CARCAR_API_KEY','CARCAR_BASE_URL','CARCAR_MODEL')){if(!$values[$name]){throw "Private configuration is missing $name"}}
-$rng=[Security.Cryptography.RandomNumberGenerator]::Create();$random=New-Object byte[] 12
-$rng.GetBytes($random);$rng.Dispose()
-$hex=[BitConverter]::ToString($random).Replace('-','')
-$passwordText=($hex.Substring(0,6),$hex.Substring(6,6),$hex.Substring(12,6),$hex.Substring(18,6)) -join '-'
-$password=ConvertTo-SecureString -String $passwordText -AsPlainText -Force
+$random=$null;$hex=$null
+if($null -eq $ProfilePassword){
+    $rng=[Security.Cryptography.RandomNumberGenerator]::Create();$random=New-Object byte[] 12
+    $rng.GetBytes($random);$rng.Dispose()
+    $hex=[BitConverter]::ToString($random).Replace('-','')
+    $passwordText=($hex.Substring(0,6),$hex.Substring(6,6),$hex.Substring(12,6),$hex.Substring(18,6)) -join '-'
+    $password=ConvertTo-SecureString -String $passwordText -AsPlainText -Force
+}else{
+    if($ProfilePassword.Length -eq 0){throw 'Profile password must not be empty'}
+    $password=$ProfilePassword.Copy()
+    $pointer=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
+    try{$passwordText=[Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer)}finally{[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer)}
+}
 $plain=$null
 try {
     $json=@{version=1;apiKey=$values['CARCAR_API_KEY'];baseUrl=$values['CARCAR_BASE_URL'];model=$values['CARCAR_MODEL']} | ConvertTo-Json -Compress
@@ -27,5 +35,5 @@ try {
     Write-Output 'Password saved only in the private password file. Plain settings were not written to temporary files.'
 } finally {
     if($null -ne $plain){[Array]::Clear($plain,0,$plain.Length)}
-    [Array]::Clear($random,0,$random.Length);$password.Dispose();$passwordText=$null;$hex=$null;$json=$null;$values.Clear();$verified=$null
+    if($null -ne $random){[Array]::Clear($random,0,$random.Length)};$password.Dispose();$passwordText=$null;$hex=$null;$json=$null;$values.Clear();$verified=$null
 }

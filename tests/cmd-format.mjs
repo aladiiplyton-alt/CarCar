@@ -7,7 +7,7 @@ import {spawnSync,execFileSync} from 'node:child_process';
 
 const project=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const starter=fs.readFileSync(path.join(project,'start.cmd'));
-for(const relative of ['start.cmd','docs/c','docs/c2','docs/c3']){
+for(const relative of ['start.cmd','docs/c','docs/c2','docs/c3','docs/c4']){
   const bytes=fs.readFileSync(path.join(project,relative));
   assert(bytes.equals(starter),`${relative} differs from start.cmd`);
   assert([...bytes].every(b=>b<128),`${relative} must be ASCII without BOM`);

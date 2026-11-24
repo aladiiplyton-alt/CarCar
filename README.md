@@ -12,7 +12,9 @@ carcar
 
 Загрузчик копирует EXE в `%TEMP%\CarCar\runs\<UUID>`, запускает его, ждёт закрытия и удаляет временную копию. CMD остаётся открытым до завершения, чтобы загрузчик мог выполнить очистку. Также можно запустить `CarCar.exe` напрямую: его временный профиль очищает короткоживущий вспомогательный процесс этого же EXE.
 
-`carcar` работает из любой папки, только если папка с `carcar.cmd` и `carcar-launcher.exe` уже добавлена пользователем в PATH. Приложение не меняет PATH и автозагрузку.
+Чтобы подготовить короткую команду из любой папки, один раз выполните первоначальный запуск ниже либо сохранённый `start.cmd` и введите пароль профиля. Загрузчик сохранит только небольшой файл `%LOCALAPPDATA%\CarCar\bin\carcar.cmd` и добавит эту папку в пользовательский PATH, сохранив остальные записи и тип значения реестра. Полный EXE и переписка там не сохраняются. Права администратора, службы и автозагрузка не нужны.
+
+После подготовки в новой CMD достаточно `carcar`. В исходной интерактивной CMD стартер также подготавливает временный псевдоним этой команды. Если текущий Windows Terminal не обновил окружение, закройте его и откройте заново. Пароль профиля вводится при каждом запуске; API Key, Base URL и модель подставляются сами. Для удаления короткой команды удалите `%LOCALAPPDATA%\CarCar\bin\carcar.cmd` и уберите папку из пользовательского PATH.
 
 ## Первый запуск из CMD через GitHub Releases
 
@@ -21,21 +23,21 @@ carcar
 Одна и та же команда для CMD на другом Windows-компьютере, без заранее скачанного архива и без путей к папкам владельца проекта:
 
 ```cmd
-curl -fL --retry 3 https://aladiiplyton-alt.github.io/CarCar/c3 -o "%TEMP%\cc.cmd" && "%TEMP%\cc.cmd"
+curl -fL --retry 3 https://aladiiplyton-alt.github.io/CarCar/c4 -o "%TEMP%\cc.cmd" && "%TEMP%\cc.cmd"
 ```
 
 Короткая ссылка ведёт на статический CMD-загрузчик этого проекта на GitHub Pages. Команда скачивает его во временную папку и сразу выполняет. Он проверяет закреплённый SHA256 сценария запуска, затем скачивает и проверяет EXE из GitHub Releases. После закрытия удаляются временные загрузки, включая временный `cc.cmd`. Если сохранить `start.cmd` в своей папке, он остаётся для повторного запуска. Папка запуска и имя пользователя Windows значения не имеют. Нужны Windows 10/11 x64, доступ к GitHub и установленный WebView2; при отсутствии Runtime загрузчик предложит открыть официальный сайт. [curl входит в современные версии Windows](https://learn.microsoft.com/en-us/windows/curl/).
 
 Начальный curl повторяет поддерживаемые временные ошибки до трёх раз сверх первого запроса. Загрузка стартового сценария, метаданных и файлов релиза делает до трёх попыток. Повреждённый EXE удаляется и скачивается повторно. Если GitHub API недоступен, используется опубликованный релиз v1.0.0. Все попытки ограничены: при недоступном сервере, блокировке сети или запрете запуска со стороны Windows выводится ошибка. Работающий Wi-Fi сам по себе не гарантирует доступность сервера; 100% успешного скачивания обещать нельзя.
 
-Предыдущая команда с `raw.githubusercontent.com/.../main/start.cmd` тоже поддерживается; временное имя `carcar-start.cmd` очищается так же. Файлы `docs/c`, `docs/c2` и `docs/c3` синхронизируются со `start.cmd` командой `./scripts/sync-launcher.ps1`. CMD-файлы публикуются в ASCII с окончаниями CRLF и не меняют кодовую страницу консоли. `.gitattributes` сохраняет их байты в Git, чтобы GitHub Pages не заменял CRLF на LF. Адрес `c3` открывает личный профиль; `c2` также обновляется. Новый адрес позволяет получить актуальный файл, даже если старый адрес `c` остался в кэше. Настоящий ключ на GitHub Pages не публикуется.
+Предыдущая команда с `raw.githubusercontent.com/.../main/start.cmd` тоже поддерживается; временное имя `carcar-start.cmd` очищается так же. Файлы `docs/c`, `docs/c2`, `docs/c3` и `docs/c4` синхронизируются со `start.cmd` командой `./scripts/sync-launcher.ps1`. CMD-файлы публикуются в ASCII с окончаниями CRLF и не меняют кодовую страницу консоли. `.gitattributes` сохраняет их байты в Git, чтобы GitHub Pages не заменял CRLF на LF. Адрес `c4` открывает личный профиль и подготавливает короткую команду; предыдущие адреса также обновляются. Новый адрес позволяет получить актуальный файл, даже если старый адрес `c` остался в кэше. Настоящий ключ на GitHub Pages не публикуется.
 
-Встроенной команды `carcar` на совершенно новом компьютере нет. Без подготовки загрузчика используется строка выше. Приложение не меняет PATH автоматически и не запрашивает обход политик безопасности компьютера.
+Встроенной команды `carcar` на совершенно новом компьютере нет. Строка выше подготавливает её после проверки пароля и регистрирует для текущего пользователя Windows. Системный PATH, автозагрузка и политики безопасности не меняются.
 
 Вариант напрямую через PowerShell из CMD, без curl:
 
 ```cmd
-powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $r='aladiiplyton-alt/CarCar'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; for($i=0;$i -lt 3;$i++){try{$b=(Invoke-WebRequest -UseBasicParsing -TimeoutSec 40 ('https://github.com/'+$r+'/releases/download/v1.0.0/bootstrap-profile-c8dbc631e019d86e.ps1?carcar='+[guid]::NewGuid())).Content; if($b -is [string]){$b=[Text.Encoding]::UTF8.GetBytes($b)}; $h=[BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash($b)).Replace('-',''); if($h -ne 'c8dbc631e019d86edc1e2d4b18a1e521f922ef210862eb4f87c3a4cd0038551c'){throw 'Bootstrap SHA256 mismatch'}; break}catch{if($i -eq 2){throw}; Write-Host 'CarCar: retrying the startup download...'; Start-Sleep -Seconds 2}}; & ([scriptblock]::Create([Text.Encoding]::UTF8.GetString($b))) -Repository $r"
+powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $r='aladiiplyton-alt/CarCar'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; for($i=0;$i -lt 3;$i++){try{$b=(Invoke-WebRequest -UseBasicParsing -TimeoutSec 40 ('https://github.com/'+$r+'/releases/download/v1.0.0/bootstrap-profile-c3c4abfbef3f99c8.ps1?carcar='+[guid]::NewGuid())).Content; if($b -is [string]){$b=[Text.Encoding]::UTF8.GetBytes($b)}; $h=[BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash($b)).Replace('-',''); if($h -ne 'c3c4abfbef3f99c832a6b963ac7d50867a3da61b074001b8d53256925baba4cb'){throw 'Bootstrap SHA256 mismatch'}; break}catch{if($i -eq 2){throw}; Write-Host 'CarCar: retrying the startup download...'; Start-Sleep -Seconds 2}}; & ([scriptblock]::Create([Text.Encoding]::UTF8.GetString($b))) -Repository $r"
 ```
 
 Команда загружает сценарий запуска из указанного релиза. Он скачивает загрузчик, приложение и SHA256SUMS, проверяет хеши и выполняет запуск из временной папки. После закрытия удаляет загрузки. Это не устанавливает постоянную команду `carcar`. Если нужен постоянный загрузчик, сохраните `carcar.cmd` и `carcar-launcher.exe` в выбранной папке; `repository.txt` со строкой `aladiiplyton-alt/CarCar` позволяет загрузчику скачивать EXE при отсутствии локальной копии.

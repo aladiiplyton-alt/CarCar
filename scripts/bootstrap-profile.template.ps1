@@ -5,6 +5,8 @@ $ProgressPreference='SilentlyContinue'
 
 # PROFILE_CRYPTO_FUNCTIONS
 
+# COMMAND_INSTALL_FUNCTIONS
+
 function Get-CarCarVerifiedBytes {
     param([string]$Uri,[string]$Hash,[int]$Maximum)
     for($attempt=1;$attempt -le 3;$attempt++){
@@ -36,6 +38,8 @@ try {
             finally{$password.Dispose()}
         }
     }
+    [void](Install-CarCarCommand)
+    Write-Host 'Команда carcar подготовлена. Следующий запуск: carcar.'
     [Environment]::SetEnvironmentVariable('CARCAR_API_KEY',$settings.apiKey,'Process')
     [Environment]::SetEnvironmentVariable('CARCAR_BASE_URL',$settings.baseUrl,'Process')
     [Environment]::SetEnvironmentVariable('CARCAR_MODEL',$settings.model,'Process')
