@@ -1,6 +1,6 @@
 * text=auto
-*.cmd -text
+*.cmd -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 *.ps1 text eol=lf
-docs/c -text
-docs/c2 -text
+docs/c -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/c2 -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 *.ico binary
