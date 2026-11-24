@@ -18,6 +18,18 @@ carcar
 
 Публичные релизы: https://github.com/aladiiplyton-alt/CarCar/releases
 
+Одна и та же команда для CMD на другом Windows-компьютере, без заранее скачанного архива и без путей к папкам владельца проекта:
+
+```cmd
+curl.exe -fsSL https://raw.githubusercontent.com/aladiiplyton-alt/CarCar/main/start.cmd -o "%TEMP%\carcar-start.cmd" && "%TEMP%\carcar-start.cmd"
+```
+
+Команда скачивает небольшой CMD-загрузчик из этого репозитория во временную папку и сразу выполняет его. Он проверяет закреплённый SHA256 сценария запуска, затем скачивает и проверяет EXE из GitHub Releases. После закрытия удаляются временные загрузки, включая временный `carcar-start.cmd`. Если сохранить `start.cmd` в своей папке, он остаётся для повторного запуска. Папка запуска и имя пользователя Windows значения не имеют. Нужны Windows 10/11 x64, доступ к GitHub и установленный WebView2; при отсутствии Runtime загрузчик предложит открыть официальный сайт. [curl входит в современные версии Windows](https://learn.microsoft.com/en-us/windows/curl/).
+
+Встроенной команды `carcar` на совершенно новом компьютере нет. Без подготовки загрузчика используется строка выше. Приложение не меняет PATH автоматически и не запрашивает обход политик безопасности компьютера.
+
+Вариант напрямую через PowerShell из CMD, без curl:
+
 ```cmd
 powershell -NoProfile -Command "$r='aladiiplyton-alt/CarCar'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $b=(Invoke-WebRequest -UseBasicParsing ('https://github.com/'+$r+'/releases/download/v1.0.0/bootstrap.ps1?carcar='+[guid]::NewGuid())).Content; if($b -is [string]){$b=[Text.Encoding]::UTF8.GetBytes($b)}; $h=[BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash($b)).Replace('-',''); if($h -ne 'c0b16ded3904adc4b1386578ca94d31979efe875274f40b6a9c6400c527b1527'){throw 'Bootstrap SHA256 mismatch'}; & ([scriptblock]::Create([Text.Encoding]::UTF8.GetString($b))) -Repository $r"
 ```
